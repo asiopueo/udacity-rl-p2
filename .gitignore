@@ -3,6 +3,7 @@ __pycache__/
 .vscode/
 *.log
 *.log.swp
+*.code-workspace
 
 Reacher_Linux_1/
 Reacher_Linux_20/
