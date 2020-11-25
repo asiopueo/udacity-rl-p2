@@ -6,7 +6,38 @@
 
 # Project 2: Continuous Control
 
-### Introduction
+## Structure of Projects
+
+The main project is included in the files
+
+1. play.py
+2. train.py
+3. Continuous_Control.ipynb
+4. Network.py
+5. Agent.py
+   
+
+## Learning Strategy
+There are several possibilities:
+1. PPO
+2. DD
+3. ABC
+   
+In the submitted solution, we have chosen the following:
+
+
+## Network Architecture
+The network definition is given in file `Network.py`:
+
+The output layer consists of four neurons with a `tanh`-activation layer.
+
+
+
+
+
+
+
+## Introduction
 
 For this project, you will work with the [Reacher](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#reacher) environment.
 
