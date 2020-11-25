@@ -6,8 +6,9 @@
 
 # Project 2: Continuous Control
 
-## Structure of Projects
 
+
+## Structure of Projects
 The main project is included in the files
 
 1. play.py
@@ -19,11 +20,13 @@ The main project is included in the files
 
 ## Learning Strategy
 There are several possibilities:
-1. PPO
-2. DD
-3. ABC
+
+1. Proximal Policy Optimization (PPO)
+2. Asynchronous Advantage Actor-Critic (A3C)
+3. Distributed Distributional Deep Deterministic Policy Gradient (D4PG)
    
 In the submitted solution, we have chosen the following:
+
 
 
 ## Network Architecture
