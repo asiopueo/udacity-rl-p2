@@ -35,7 +35,7 @@ def network_simple():
     model.add( Activation('relu') )
     model.add( Dropout(0.2) )
     model.add( Dense(4) )
-    model.add( Activation('softmax') )
+    model.add( Activation('tanh') )
 
     model.compile(loss=losses.mean_squared_error, optimizer='sgd')
     return model
