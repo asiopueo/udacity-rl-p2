@@ -22,8 +22,11 @@ class Agent():
         # Seed the random number generator
         random.seed()
         # QNetwork - We choose the simple network
-        self.actor_net = Network.network_actor()
-        self.critic_net = Network.network_critic()
+        self.actor_local = Network.network_actor()
+        self.actor_target = Network.network_actor()
+
+        self.critic_local = Network.network_critic()
+        self.critic_target = Network.network_critic()
 
     # Let the agent learn from experience
     def learn(self):
@@ -56,7 +59,15 @@ class Agent():
         print("X_np.shape: ", X_np.shape)
         print("y_np.shape: ", y_np.shape)
 
-        self.local_net.fit(X_np, y_np, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+        # Train the actor network
+        self.actor_local.fit(X_np, y_np, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+
+        # Train the critic network
+        self.critic_local.fit(X_np, y_np, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+
+        # Soft updates:
+
+        
 
 
 
