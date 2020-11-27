@@ -9,13 +9,14 @@ import Network
 
 
 class Agent():
-    def __init__(self, buffer_size, batch_size, gamma):
+    def __init__(self, buffer_size, batch_size, gamma, action_size):
         if not batch_size < buffer_size:
             raise Exception()
 
         self.buffer_size = buffer_size
         self.batch_size = batch_size
         self.gamma = gamma
+        self.action_size = action_size
 
         # Initialize replay buffer
         self.replay_buffer = ReplayBuffer(buffer_size, batch_size)
@@ -75,7 +76,7 @@ class Agent():
     # Take action according to epsilon-greedy-policy:
     def action(self, state, epsilon=0.9):
         if random.random() > epsilon:
-            return random.randrange(0,4)
+            return 2 * np.random.random_sample(self.action_size) - 1.0
         else:
             return self.actor_local(state)
         

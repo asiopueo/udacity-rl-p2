@@ -11,9 +11,6 @@ brain = env.brains[brain_name]
 from Agent import Agent
 from collections import namedtuple
 
-# Initialize the agent:
-agent = Agent(buffer_size=1000, batch_size=20, gamma=0.98)
-
 # Reset the environment
 env_info = env.reset(train_mode=False)[brain_name]
 
@@ -27,6 +24,9 @@ print('Size of each action:', action_size)
 
 # Define named tuple 'Experience'; you can use a dictionary alternatively
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
+
+# Initialize the agent:
+agent = Agent(buffer_size=1000, batch_size=20, gamma=0.98, action_size=4)
 
 
 # Initial values:
@@ -42,9 +42,7 @@ def play_one_turn():
     global score, time, state, env_info
 
     # Select action according to policy:
-    # action = ...
-    # Select random action:
-    action = 2 * np.random.random_sample(action_size) - 1.0
+    action = agent.action(state, 0.0)
 
     print('Action taken: ', action, 'Time: ', time)
 
@@ -68,8 +66,8 @@ def play_one_turn():
     agent.replay_buffer.insert_into_buffer( exp )
 
     # If buffer is sufficiently full, let the agent learn from his experience:
-    #if agent.replay_buffer.buffer_usage():
-    #    agent.learn()
+    if agent.replay_buffer.buffer_usage():
+        agent.learn()
 
     score += reward
     state = next_state
