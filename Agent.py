@@ -33,8 +33,8 @@ class Agent():
         # Retrieve batch of experiences from the replay buffer:
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.replay_buffer.sample_from_buffer()
         # Prepare the target. Note that Q_target[:,action] will need to be assigned the 'true' learning target.
-        Q_target = self.local_net.predict( state_batch )
-        Q_next_state = np.max( self.target_net.predict(next_state_batch), axis=1 )
+        Q_target = self.actor_local.predict( state_batch )
+        Q_next_state = np.max( self.actor_target.predict(next_state_batch), axis=1 )
 
         X = []
         y = []
@@ -48,6 +48,7 @@ class Agent():
             else:
                 Q_new = reward_batch[index]
 
+            print(action_batch[index].shape) # (4,)
             Q_target[index, action_batch[index]] = Q_new
 
             X.append(state)
@@ -76,19 +77,25 @@ class Agent():
         if random.random() > epsilon:
             return random.randrange(0,4)
         else:
-            return self.local_net(state)
+            return self.actor_local(state)
         
-        prob_distribution = self.local_net.predict(state.reshape(1,-1))
+        prob_distribution = self.actor_local.predict(state.reshape(1,-1))
         action = np.argmax(prob_distribution)
         return action
 
     # Copy weights from short-term model to long-term model
-    def update_target_net(self, tau=0.1):
+    def update_target_nets(self, tau=0.1):
         # Implement soft update for later:
         # get_weights()[0] -- weights
         # get weights()[1] -- bias (if existent)
         # Soft-update:
-        self.actor_net.set_weights( tau*self.actor_net.get_weights() + (1-tau)*self.critic_net.get_weights() )
+        actor_weights_local = np.array( self.actor_local.get_weights() )
+        actor_weights_target = np.array( self.actor_target.get_weights() )
+        self.actor_target.set_weights( tau*actor_weights_local + (1-tau)*actor_weights_target )
+
+        critic_weights_local = np.array( self.critic_local.get_weights() )
+        critic_weights_target = np.array( self.critic_target.get_weights() )
+        self.critic_target.set_weights( tau*critic_weights_local + (1-tau)*critic_weights_target )
 
 
 
