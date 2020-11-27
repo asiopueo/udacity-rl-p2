@@ -28,6 +28,110 @@ There are several possibilities:
 In the submitted solution, we have chosen the following:
 
 
+$U_\theta = \mathbb{E\left[\sum_{t=0}^T r(s_t, a_t)\right]}$
+
+where
+
+$\tau = \left( s_0, a_, s_1, a_1, \ldots, s_T, a_T\right)$
+
+$U_\theta = \mathbb{E}\left[\mathbb{E}\left[Q_{P_\theta}(s_0, a_0)\right]\right]$
+
+$U_\theta = \sum_\tau \left(P_\theta(\tau)\left( \sum_{t=0}^T r(s_t, a_t) \right)\right)$
+
+Using the Reinforce-log-trick, we arrive at:
+
+$\nabla_\theta U_\theta = \mathbb{E}\left[\sum_{t=0}^T\left( \nabla_\theta\log(P_\theta(a_t\mid s_t)) \left(\sum_{t=0}^T r(s_t, a_t)\right)\right)\right]$
+
+### Reinforce Trick
+
+$p(\tau; \theta, \phi) = \prod_{t=1}^T p(r_t, s_{t+1 \mid s_t, a_t;\phi})\pi(a_t\mid s_t;\theta)$
+
+$\mathbb{E}_{p(\tau \mid \theta, \phi)} \left[R(\tau)\right]$
+
+$\hat{g} = \nabla_\theta\mathbb{E}_{p(\tau\mid\theta,\phi)}\left[R(\tau)\right]$
+
+$\theta \leftarrow \theta + \alpha\hat{g}$
+
+
+$\hat{g} = \nabla_\theta\mathbb{E}_{p(\tau\mid\theta,\phi)}\left[R(\tau)\right] \approx \frac{1}{N} \sum_{i=1}^N \nabla_\theta\left[R(\tau_i)\right]$
+
+$\nabla_\theta p(z;\theta) = p(z;\theta) \nabla_\theta\log p(z;\theta)$
+
+$\nabla_\theta\mathbb{E}_{p(\tau\mid\theta,\phi)}\left[R(\tau)\right] \approx \frac{1}{N} \sum_{i=1}^N \left[R(\tau_i) \nabla_\theta\log p(\tau_i;\theta,\phi\right]$
+
+Assuming a single sample trajectory:
+
+$\nabla_\theta\mathbb{E}_{p(\tau\mid\theta,\phi)}\left[R(\tau)\right] \approx R(\tau) \sum_{t=1}^T \nabla_\theta \log p(a_t \mid s_t ; \theta)$
+
+-> Very high variance, so a baseline is needed.
+
+## The Actor-Critic Algorithm
+
+The weights are then updated as follows:
+$w \leftarrow w-\beta\nabla_w L(w)$
+
+Using Q-Learning (SARSA-max):
+$Q_\theta(s_t,a_t) \approx r(s_t,a_t) + \max_a \hat{Q}(s_{t+1},a,w)$
+
+$\nabla_w L(w) = -\left(r(s_t,a_t)+\max \hat{Q}(s_{t+1}, a, w) - \hat{Q}(s_t,a_t,w)\right) \nabla_w \hat{Q}(s_t,a_t,w)$
+
+## Advantage-Actor-Critic
+
+$\nabla_\theta U_\theta \approx \hat{g} = \frac{1}{m}\sum_{i=1}^m \left(\sum_{t=0}^T \left(\nabla_\theta\log(P_\theta(a_t\mid s_t)) \left(  \hat{Q}_{P_\theta}(s_t, a_t, w) -b\right) \right) \right)_i$
+
+Advantage function:
+$A(s_t,a_t) = Q(s_t, a_t) - V(s_t)$
+
+Gradient equation for Advantage Actor Critic:
+
+$\nabla U \approx \hat{g} = \frac{1}{m} \sum_{i=0}^m \left(\sum_{t=0}^T\left(\nabla\log(P)\hat{A}(s_t,a_t,w)\right)\right)_i$
+
+Again, update is given by:
+
+$w_v \leftarrow - \beta\nabla_{w_v} L(w_v)$
+
+Main downside of the REINFORCE algorithm is that the gradient estimator is a Monte-Carlo estimator
+
+$b = \hat{V}(s_t, w) = \mathbb{E}\left[\hat{Q}(s_t, a_t, w)\right]$
+
+
+$\hat{A}(s_t, a_t, w) = \hat{Q}(s_t, a_t, w) - \hat{V}(s_t, w)$
+
+Approximate the state function via an ANN:
+
+$\hat{V}(s_t, w) \approx \hat{V}(s_t, w)$
+
+Advantage function can then be written as:
+
+$\hat{A}(s_t, a_t, w) \approx \hat{A}(s_t, a_t, w, w_v) = \hat{Q}(s_t, a_t, w)-\hat{V}(s_t, w_v)$
+
+
+$\nabla_{w_v}L(w_v) = - \hat{A}_{P_\theta}(s_t, a_t, w_v) \nabla_{w_v}\hat{V}(s_t, w_v)$
+
+$w_v \leftarrow w_v - \beta \nabla_{w_v} L(w_v)$
+
+## Deterministic Policy Gradient Algorithm
+### Actor network:
+Let $\mu_\theta$ be the target policy.
+
+$\theta \leftarrow \theta + \alpha_\theta \nabla_\theta\hat{Q}_\theta(s_t, \mu_\theta(s_t), w)$
+Chain rule:
+$\theta \leftarrow \theta + \alpha_\theta\nabla_a\hat{Q}_\theta(s_t,a , w) \nabla_\theta\mu_\theta(s_t)$
+
+### Critic network:
+TD-error:
+
+$\delta_t = r(s_t, a_t) + \hat{Q}_\theta(s_{t+1}, \mu_\theta(s_{t+1}), w) - \hat{Q}_\theta(s_t, a_t\sim b(s_t), w)-\hat{Q}_\theta(s_t, a_t\sim b(s_t), w)$
+
+Weight update:
+
+$w \leftarrow w + \alpha_w \delta_t \nabla_w\hat{Q}_\theta(s_t, a_t \sim b(s_t), w)$
+
+## Deep Deterministic Policy Gradient Algorithm
+
+
+
+
 
 ## Network Architecture
 The network definition is given in file `Network.py`:
