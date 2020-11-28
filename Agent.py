@@ -20,6 +20,10 @@ class Agent():
 
         # Initialize replay buffer
         self.replay_buffer = ReplayBuffer(buffer_size, batch_size)
+
+        # Initialize noise
+        self.noise = Noise()
+
         # Seed the random number generator
         random.seed()
         # QNetwork - We choose the simple network
@@ -30,51 +34,59 @@ class Agent():
         self.critic_target = Network.network_critic()
 
     # Let the agent learn from experience
+    # Utilizing Deep Deterministic Policy Gradient methodology (DDPG):
     def learn(self):
+        """
+        Q() = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
+        """
         # Retrieve batch of experiences from the replay buffer:
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.replay_buffer.sample_from_buffer()
-        # Prepare the target. Note that Q_target[:,action] will need to be assigned the 'true' learning target.
-        Q_target = self.actor_local.predict( state_batch )
-        Q_next_state = np.max( self.actor_target.predict(next_state_batch), axis=1 )
+
+        Q_target = self.critic_local.predict( state_batch, action_batch )
 
         X = []
         y = []
 
         # Batches need to be prepared before learning
         for index, state in enumerate(state_batch):    
-            # Calculate the next q-value according to SARSA-MAX   
-            # Q_new w.r.t. action:
+            Q_exp = self.critic_local(state_batch, action_batch)
+            
+            next_action = self.actor_local(state_batch)
             if not done_batch[index]:
-                Q_new = reward_batch[index] + self.gamma * Q_next_state[index]
+                Q_target = reward_batch[index] + self.gamma * self.critic_target(next_state, next_action)
             else:
-                Q_new = reward_batch[index]
+                Q_target = reward_batch[index]
 
             print(action_batch[index].shape) # (4,)
-            Q_target[index, action_batch[index]] = Q_new
+            #Q_target[index, action_batch[index]] = Q_new
 
-            X.append(state)
-            y.append(Q_target[index])
+            X.append(Q_exp[index])
+            y.append(Q_target)
 
-        X_np = np.array(X)
-        y_np = np.array(y)
+        X_policy_action = np.array(X)
+        X_noise_action = np.hstack()
+        Q_target = np.array(Q_target)
 
-        print("X_np.shape: ", X_np.shape)
-        print("y_np.shape: ", y_np.shape)
+        print("X_policy_action.shape: ", X_policy_action.shape)
+        print("X_noise_action.shape: ", X_noise_action.shape)
+        print("Q_target.shape: ", Q_target.shape)
 
         # Train the actor network
-        self.actor_local.fit(X_np, y_np, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+        self.actor_local.fit(X_policy_action, None, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
         # Train the critic network
-        self.critic_local.fit(X_np, y_np, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+        # This one is more straightforward
+        self.critic_local.fit(X_noise_action, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
         # Soft updates:
-
+        #
         
 
 
 
     # Take action according to epsilon-greedy-policy:
     def action(self, state, epsilon=0.9):
+               
         if random.random() > epsilon:
             return 2 * np.random.random_sample(self.action_size) - 1.0
         else:
@@ -128,3 +140,12 @@ class ReplayBuffer():
     # Get length of memory
     def buffer_usage(self):
         return len(self.replay_buffer) > self.batch_size
+
+
+
+class Noise():
+    def __init__():
+        pass
+
+    def sample():
+        pass
