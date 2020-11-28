@@ -9,7 +9,7 @@ import Network
 
 
 class Agent():
-    def __init__(self, buffer_size, batch_size, gamma, action_size):
+    def __init__(self, buffer_size, batch_size, action_size, gamma, epsilon=0.9):
         if not batch_size < buffer_size:
             raise Exception()
 
@@ -23,6 +23,7 @@ class Agent():
 
         # Initialize noise
         self.noise = Noise()
+        self.epsilon = epsilon
 
         # Seed the random number generator
         random.seed()
@@ -75,25 +76,27 @@ class Agent():
         self.actor_local.fit(X_policy_action, None, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
         # Train the critic network
-        # This one is more straightforward
         self.critic_local.fit(X_noise_action, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
         # Soft updates:
-        #
+        #self.update_target_nets()
         
 
 
 
     # Take action according to epsilon-greedy-policy:
-    def action(self, state, epsilon=0.9):
-               
-        if random.random() > epsilon:
-            return 2 * np.random.random_sample(self.action_size) - 1.0
-        else:
-            return self.actor_local(state)
+    def action(self, state):
+        # Sample action from actor network:
+        action = self.actor_local(state)
+
+        # Uncomment for random action, ígnoring the previous sampling:
+        # action = 2 * np.random.random_sample(self.action_size) - 1.0
+
+        # Add noise to action:
+        if np.random.random() > (1.-self.epsilon):
+            action += self.noise.sample()
         
-        prob_distribution = self.actor_local.predict(state.reshape(1,-1))
-        action = np.argmax(prob_distribution)
+        action = np.clip(action, -1, +1)
         return action
 
     # Copy weights from short-term model to long-term model
@@ -144,8 +147,10 @@ class ReplayBuffer():
 
 
 class Noise():
-    def __init__():
+    def __init__(self):
         pass
 
-    def sample():
-        pass
+    def sample(self):
+        #Todo: Sample from normal distribution
+        return np.random.normal(mu=0.0, sigma=1.0)
+

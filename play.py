@@ -26,7 +26,7 @@ print('Size of each action:', action_size)
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
 
 # Initialize the agent:
-agent = Agent(buffer_size=1000, batch_size=20, gamma=0.98, action_size=4)
+agent = Agent(buffer_size=1000, batch_size=20, gamma=0.98, epsilon=0.1, action_size=4)
 
 
 # Initial values:
