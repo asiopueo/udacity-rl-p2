@@ -43,29 +43,27 @@ class Agent():
         # Retrieve batch of experiences from the replay buffer:
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.replay_buffer.sample_from_buffer()
 
-        Q_target = self.critic_local.predict( state_batch, action_batch )
+        state_action_batch = np.hstack((state_batch, action_batch))
 
-        if not done_batch[index]:
-            next_action_batch = self.actor_local(state_batch)
-            Q_target_batch = reward_batch + self.gamma * self.critic_target(next_state_batch, next_action_batch)
-        else:
-            Q_target_batch = reward_batch
+        Q_target = self.critic_local.predict( state_action_batch )
+
+        next_action_batch = self.actor_local.predict(state_batch)
+        next_state_action_batch = np.hstack( (next_state_batch, next_action_batch) )
+        Q_target_batch = reward_batch + self.gamma * self.critic_target.predict( next_state_action_batch )
 
         print(action_batch.shape) # (4,)
 
-        X_policy_action = np.array(X_policy_action)
-        X_noise_action = np.hstack()
-        Q_target = np.array(Q_target)
+        X_noise_action = np.hstack( (state_batch, action_batch) )
 
-        print("X_policy_action.shape: ", X_policy_action.shape)
-        print("X_noise_action.shape: ", X_noise_action.shape)
-        print("Q_target.shape: ", Q_target.shape)
+        #print("X_policy_action.shape: ", X_policy_action.shape)
+        #print("X_noise_action.shape: ", X_noise_action.shape)
+        #print("Q_target.shape: ", Q_target.shape)
 
         # Train the actor network
-        self.actor_local.fit(X_policy_action, None, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+        #self.actor_local.fit(state_batch, None, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
         # Train the critic network
-        self.critic_local.fit(X_noise_action, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+        #self.critic_local.fit(X_noise_action, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
         # Soft updates:
         self.update_target_nets(tau=0.01)
@@ -75,7 +73,7 @@ class Agent():
     # Take action according to epsilon-greedy-policy:
     def action(self, state, add_noise=True):
         # Sample action from actor network:
-        action = self.actor_local(state)
+        action = self.actor_local.predict((state.reshape(1,-1)))
 
         # Uncomment for random action, ígnoring the previous sampling:
         # action = 2 * np.random.random_sample(self.action_size) - 1.0
@@ -141,5 +139,6 @@ class Noise():
 
     def sample(self):
         #Todo: Sample from normal distribution
-        return np.random.normal(mu=0.0, sigma=1.0)
+        mu, sigma = 0.0, 1.0
+        return np.random.normal(mu, sigma)
 
