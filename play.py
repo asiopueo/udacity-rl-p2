@@ -42,7 +42,7 @@ def play_one_turn():
     global score, time, state, env_info
 
     # Select action according to policy:
-    action = agent.action(state, 0.0)
+    action = agent.action(state, 0.0, add_noise=True)
 
     print('Action taken: ', action, 'Time: ', time)
 
@@ -73,7 +73,7 @@ def play_one_turn():
     state = next_state
 
 
-
+# Main loop:
 while True:
     play_one_turn()
     
@@ -82,7 +82,6 @@ while True:
     elif time%10 == 0:
         print("[Time: {}] Time to update the target net.".format(time))
         print("Buffer usage: {}".format(agent.replay_buffer.buffer_usage()))
-        #agent.update_target_net()
 
     time += 1
 
