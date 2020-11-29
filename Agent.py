@@ -38,33 +38,22 @@ class Agent():
     # Utilizing Deep Deterministic Policy Gradient methodology (DDPG):
     def learn(self):
         """
-        Q() = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
+        Q(s_t,a_t) = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
         """
         # Retrieve batch of experiences from the replay buffer:
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.replay_buffer.sample_from_buffer()
 
         Q_target = self.critic_local.predict( state_batch, action_batch )
 
-        X = []
-        y = []
+        if not done_batch[index]:
+            next_action_batch = self.actor_local(state_batch)
+            Q_target_batch = reward_batch + self.gamma * self.critic_target(next_state_batch, next_action_batch)
+        else:
+            Q_target_batch = reward_batch
 
-        # Batches need to be prepared before learning
-        for index, state in enumerate(state_batch):    
-            Q_exp = self.critic_local(state_batch, action_batch)
-            
-            next_action = self.actor_local(state_batch)
-            if not done_batch[index]:
-                Q_target = reward_batch[index] + self.gamma * self.critic_target(next_state, next_action)
-            else:
-                Q_target = reward_batch[index]
+        print(action_batch.shape) # (4,)
 
-            print(action_batch[index].shape) # (4,)
-            #Q_target[index, action_batch[index]] = Q_new
-
-            X.append(Q_exp[index])
-            y.append(Q_target)
-
-        X_policy_action = np.array(X)
+        X_policy_action = np.array(X_policy_action)
         X_noise_action = np.hstack()
         Q_target = np.array(Q_target)
 
@@ -79,13 +68,12 @@ class Agent():
         self.critic_local.fit(X_noise_action, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
         # Soft updates:
-        #self.update_target_nets()
+        self.update_target_nets(tau=0.01)
         
 
 
-
     # Take action according to epsilon-greedy-policy:
-    def action(self, state):
+    def action(self, state, add_noise=True):
         # Sample action from actor network:
         action = self.actor_local(state)
 
@@ -99,8 +87,9 @@ class Agent():
         action = np.clip(action, -1, +1)
         return action
 
+
     # Copy weights from short-term model to long-term model
-    def update_target_nets(self, tau=0.1):
+    def update_target_nets(self, tau=0.01):
         # Implement soft update for later:
         # get_weights()[0] -- weights
         # get weights()[1] -- bias (if existent)
