@@ -52,7 +52,7 @@ def network_critic():
     # between -1 and 1 which represent the torque applied to the two joints of
     # the robot arm
 
-    model.add( Dense(33, input_shape=(33,) ) )
+    model.add( Dense(37, input_shape=(37,) ) )
     model.add( Activation('relu') )
     model.add( Dropout(0.2) )
     model.add( Dense(64) )
