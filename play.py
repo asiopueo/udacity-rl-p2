@@ -49,14 +49,6 @@ def play_one_turn():
     # Take action and record the reward and the successive state
     env_info = env.step(action)[brain_name]
     
-    """
-    try:
-        env_info = env.step(action)[brain_name]
-    except:
-        print("Final score: {}".format(score))
-        env.close()
-    """
-
     reward = env_info.rewards[0]
     next_state = env_info.vector_observations[0]
     done = env_info.local_done[0] # Not really relevant in this experiment as it runs 300 turns anyway
