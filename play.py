@@ -42,7 +42,7 @@ def play_one_turn():
     global score, time, state, env_info
 
     # Select action according to policy:
-    action = agent.action(state, 0.0, add_noise=True)
+    action = agent.action(state, add_noise=True)
 
     print('Action taken: ', action, 'Time: ', time)
 
