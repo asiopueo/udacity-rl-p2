@@ -46,24 +46,32 @@ class Agent():
         state_action_batch = np.hstack((state_batch, action_batch))
 
         Q_target = self.critic_local.predict( state_action_batch )
+        
+        """from keras.layers import Input
+        input_layer = Input(shape=(37,), name='test')
+        Q_target_ = self.critic_local(input_layer)
+        print(type(Q_target_))"""
+        import keras
 
+        # Train the actor network
+        state_input = keras.layers.Input(shape=(33,))
+        state_action_input = keras.layers.concatenate([state_input, self.actor_local(state_input)])
+        x = self.critic_local(state_action_input)
+        model = keras.Model( input = [state_input], output = [x] )
+
+        model.compile(loss=keras.losses.mean_squared_error, optimizer='sgd')
+        
+        #state_batch = np.array(state_batch)
+        model.fit(state_batch, np.zeros((self.batch_size, 1)), batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+        #self.actor_local.fit(state_batch, None, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+
+
+        # Train the critic network
         next_action_batch = self.actor_local.predict(state_batch)
         next_state_action_batch = np.hstack( (next_state_batch, next_action_batch) )
         Q_target_batch = reward_batch + self.gamma * self.critic_target.predict( next_state_action_batch )
 
-        print(action_batch.shape) # (4,)
-
-        X_noise_action = np.hstack( (state_batch, action_batch) )
-
-        #print("X_policy_action.shape: ", X_policy_action.shape)
-        #print("X_noise_action.shape: ", X_noise_action.shape)
-        #print("Q_target.shape: ", Q_target.shape)
-
-        # Train the actor network
-        #self.actor_local.fit(state_batch, None, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
-
-        # Train the critic network
-        #self.critic_local.fit(X_noise_action, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+        #self.critic_local.fit(noise_action_batch, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
         # Soft updates:
         self.update_target_nets(tau=0.01)

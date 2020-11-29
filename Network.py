@@ -30,9 +30,6 @@ def network_actor():
     model.add( Dropout(0.2) )
     model.add( Dense(64) )
     model.add( Activation('relu') )
-    #model.add( Dropout(0.2) )
-    #model.add( Dense(64) )
-    #model.add( Activation('relu') )
     model.add( Dropout(0.2) )
     model.add( Dense(4) )
     model.add( Activation('tanh') )
@@ -57,12 +54,9 @@ def network_critic():
     model.add( Dropout(0.2) )
     model.add( Dense(64) )
     model.add( Activation('relu') )
-    #model.add( Dropout(0.2) )
-    #model.add( Dense(64) )
-    #model.add( Activation('relu') )
     model.add( Dropout(0.2) )
     model.add( Dense(1) )
     model.add( Activation('tanh') )
 
-    model.compile(loss=losses.mean_squared_error, optimizer='sgd')
+    #model.compile(loss=losses.mean_squared_error, optimizer='sgd')
     return model
