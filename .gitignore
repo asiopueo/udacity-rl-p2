@@ -5,5 +5,7 @@ __pycache__/
 *.log.swp
 *.code-workspace
 
+checkpoints/
+
 Reacher_Linux_1/
 Reacher_Linux_20/
