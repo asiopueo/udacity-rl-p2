@@ -1,7 +1,9 @@
 from unityagents import UnityEnvironment
 import numpy as np
 
-# Initialization of Unity environment
+#################################
+#  Initialization:
+#################################
 env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
 # get the default brain
 brain_name = env.brain_names[0]
@@ -35,10 +37,10 @@ score = 0   # Score is NOT the discounted reward but the final 'Banana Score' of
 time = 0
 
 
-#################################
-#   Play one episode:
-#################################
-def play_one_turn():
+####################################
+#  Step-function and Main loop:
+####################################
+def step():
     global score, time, state, env_info
 
     # Select action according to policy:
@@ -58,24 +60,38 @@ def play_one_turn():
     agent.replay_buffer.insert_into_buffer( exp )
 
     # If buffer is sufficiently full, let the agent learn from his experience:
+    # Put the learning procedures into the main loop below!
     if agent.replay_buffer.buffer_usage():
-        agent.learn()
+        pass
+        #agent.learn()
 
     score += reward
     state = next_state
 
 
-# Main loop:
-while True:
-    play_one_turn()
+
+#agent.load_weights("./checkpoints")
+
+
+while time < 200:
+    step()
     
-    if time%50 == 0:
-        print("[Time: {}] Score".format(time))
-    elif time%10 == 0:
+    if time%10 == 0:
         print("[Time: {}] Time to update the target net.".format(time))
+    elif time%50 == 0:
+        print("[Time: {}] Score {}".format(time, score))
         print("Buffer usage: {}".format(agent.replay_buffer.buffer_usage()))
 
     time += 1
+
+
+####################################
+#  Debriefing:
+####################################
+
+print("")
+print("Total score:", score)
+agent.save_weights("./checkpoints")
 
 
 
