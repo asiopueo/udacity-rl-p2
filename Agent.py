@@ -93,6 +93,8 @@ class Agent():
         action = np.clip(action, -1, +1)
         return action
 
+    def random_action(self):
+        return self.noise.sample()
 
     # Copy weights from short-term model to long-term model
     def update_target_nets(self, tau=0.01):
@@ -108,6 +110,23 @@ class Agent():
         critic_weights_target = np.array( self.critic_target.get_weights() )
         self.critic_target.set_weights( tau*critic_weights_local + (1-tau)*critic_weights_target )
 
+    def load_weights(self, path):
+        filepath = os.path.join(path, "actor_weights_latest.ckpt")
+        print("Loading actor network weights from", filepath)
+        self.actor_local_net.load_weights(filepath)
+        self.actor_target_net.load_weights(filepath)
+        filepath = os.path.join(path, "critic_weights_latest.ckpt")
+        print("Loading critic network weights from", filepath)
+        self.critic_local_net.load_weights(filepath)
+        self.critic_target_net.load_weights(filepath)
+
+    def save_weights(self, path):
+        filepath = os.path.join(path, "actor_weights_latest.ckpt")
+        print("Saving actor network weights to", filepath)
+        self.target_net.save_weights(filepath)
+        filepath = os.path.join(path, "critic_weights_latest.ckpt")
+        print("Saving critic network weights to", filepath)
+        self.target_net.save_weights(filepath)
 
 
 class ReplayBuffer():
