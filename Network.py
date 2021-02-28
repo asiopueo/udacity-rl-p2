@@ -27,10 +27,8 @@ def network_actor():
 
     model.add( Dense(33, input_shape=(33,) ) )
     model.add( Activation('relu') )
-    model.add( Dropout(0.2) )
-    model.add( Dense(64) )
+    model.add( Dense(64, kernel_initializer=tf.initializers.he_normal()) )
     model.add( Activation('relu') )
-    model.add( Dropout(0.2) )
     model.add( Dense(4) )
     model.add( Activation('tanh') )
 
@@ -51,10 +49,8 @@ def network_critic():
 
     model.add( Dense(37, input_shape=(37,) ) )
     model.add( Activation('relu') )
-    model.add( Dropout(0.2) )
-    model.add( Dense(64) )
+    model.add( Dense(64, kernel_initializer=tf.initializers.he_normal()) )
     model.add( Activation('relu') )
-    model.add( Dropout(0.2) )
     model.add( Dense(1) )
     model.add( Activation('tanh') )
 
