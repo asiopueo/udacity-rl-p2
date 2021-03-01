@@ -25,13 +25,9 @@ def network_actor():
     # between -1 and 1 which represent the torque applied to the two joints of
     # the robot arm
 
-    model.add( Dense(33, input_shape=(33,) ) )
-    model.add( Activation('relu') )
-    model.add( Dense(64, kernel_initializer=tf.initializers.he_normal()) )
-    model.add( Activation('relu') )
-    model.add( Dense(4) )
-    model.add( Activation('tanh') )
-
+    model.add( Dense(33, input_shape=(33,), activation='relu' ) )
+    model.add( Dense(64, kernel_initializer=tf.initializers.he_normal(), activation='relu') )
+    model.add( Dense(4, activation='tanh') )
     model.compile(loss=losses.mean_squared_error, optimizer='sgd')
     return model
 
@@ -47,12 +43,8 @@ def network_critic():
     # between -1 and 1 which represent the torque applied to the two joints of
     # the robot arm
 
-    model.add( Dense(37, input_shape=(37,) ) )
-    model.add( Activation('relu') )
-    model.add( Dense(64, kernel_initializer=tf.initializers.he_normal()) )
-    model.add( Activation('relu') )
-    model.add( Dense(1) )
-    model.add( Activation('tanh') )
-
+    model.add( Dense(37, input_shape=(37,), activation='relu' ) )
+    model.add( Dense(64, kernel_initializer=tf.initializers.he_normal(), activation='relu') )
+    model.add( Dense(1, activation='tanh') )
     #model.compile(loss=losses.mean_squared_error, optimizer='sgd')
     return model
