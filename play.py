@@ -28,21 +28,23 @@ print('Size of each action:', action_size)
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
 
 # Initialize the agent:
-agent = Agent(buffer_size=1000, batch_size=20, gamma=0.98, epsilon=0.1, action_size=4)
+agent = Agent(buffer_size=10000, batch_size=20, gamma=0.98, epsilon=0.1, action_size=4)
 
 
 # Initial values:
-state = env_info.vector_observations[0]   # get the current state
-score = 0   # Score is NOT the discounted reward but the final 'Banana Score' of the game
+state = env_info.vector_observations[0]     # get the current state
+score = 0       # Score is NOT the discounted reward but the final 'Banana Score' of the game
 time = 0
 
 
 ####################################
-#  Step-function and Main loop:
+#  Main learning loop:
 ####################################
-def step():
-    global score, time, state, env_info
 
+#agent.load_weights("./checkpoints")
+
+
+while time < 200:
     # Select action according to policy:
     action = agent.action(state, add_noise=True)
 
@@ -58,23 +60,11 @@ def step():
     # Add experience to the agent's replay buffer:
     exp = Experience(state, action, reward, next_state, done)
     agent.replay_buffer.insert_into_buffer( exp )
-
-    # If buffer is sufficiently full, let the agent learn from his experience:
-    # Put the learning procedures into the main loop below!
-    if agent.replay_buffer.buffer_usage():
-        pass
-        #agent.learn()
+    
+    agent.learn()
 
     score += reward
     state = next_state
-
-
-
-#agent.load_weights("./checkpoints")
-
-
-while time < 200:
-    step()
     
     if time%10 == 0:
         print("[Time: {}] Time to update the target net.".format(time))
