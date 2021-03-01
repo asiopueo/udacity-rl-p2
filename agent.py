@@ -4,8 +4,7 @@ import numpy as np
 from collections import namedtuple
 
 import Network
-
-
+import keras
 
 
 class Agent():
@@ -28,12 +27,11 @@ class Agent():
         # Seed the random number generator
         random.seed()
         # QNetwork - We choose the simple network
-        self.actor_local = Network.network_actor()
-        self.actor_target = Network.network_actor()
+        self.actor_local = Network.actor()
+        self.actor_target = Network.actor()
 
-        self.critic_local = Network.network_critic()
-        self.critic_target = Network.network_critic()
-
+        self.critic_local = Network.critic()
+        self.critic_target = Network.critic()
 
 
     # Let the agent learn from experience
@@ -43,41 +41,30 @@ class Agent():
         # Put the learning procedures into the main loop below!
         if not self.replay_buffer.buffer_usage():
             return
-        """
-        Q(s_t,a_t) = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
-        """
+        
         # Retrieve batch of experiences from the replay buffer:
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.replay_buffer.sample_from_buffer()
-
-        state_action_batch = np.hstack((state_batch, action_batch))
-
-        Q_target = self.critic_local.predict( state_action_batch )
         
-        """from keras.layers import Input
-        input_layer = Input(shape=(37,), name='test')
-        Q_target_ = self.critic_local(input_layer)
-        print(type(Q_target_))"""
-        import keras
+        # Train the critic network
+        # Q(s_t,a_t) = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
+        with tf.GradientTape as tape:
+            actions_target = self.critic_target(next_state_batch, training=True)
+            y = reward_batch + self.gamma * self.critic_target( [next_state_batch, actions_target], training=True )
+            critic_value = self.critic_local([state_batch, action_batch], training=True)
+            
+            critic_loss = tf.math.reduce_mean(tf.math.square(y - critic_value))
+            critic_grad = tape.gradient(critic_loss, critic_target.trainable_variables)
+            critic_optimizer.apply_gradients( zip(critic_grad, self.critic_target.trainable_variables) )
 
         # Train the actor network
-        state_input = keras.layers.Input(shape=(33,))
-        state_action_input = keras.layers.concatenate([state_input, self.actor_local(state_input)])
-        x = self.critic_local(state_action_input)
-        model = keras.Model( input = [state_input], output = [x] )
-
-        model.compile(loss=keras.losses.mean_squared_error, optimizer='sgd')
-        
-        #state_batch = np.array(state_batch)
-        model.fit(state_batch, np.zeros((self.batch_size, 1)), batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
-        #self.actor_local.fit(state_batch, None, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
-
-
-        # Train the critic network
-        next_action_batch = self.actor_local.predict(state_batch)
-        next_state_action_batch = np.hstack( (next_state_batch, next_action_batch) )
-        td_target_batch = reward_batch + self.gamma * self.critic_target.predict( next_state_action_batch )
-
-        #self.critic_local.fit(noise_action_batch, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
+        with tf.GradientTape as grad:
+            next_action_batch = self.actor_local(state_batch)
+            next_state_action_batch = np.hstack( (next_state_batch, next_action_batch) )
+            actor_pred = reward_batch + self.gamma * self.critic_target.predict( next_state_action_batch )
+            
+            actor_loss = tf.math.reduce_mean(state_batch)
+            actor_grad = tape.gradient()
+            actor_optimizer.apply_gradients( zip(actor_grad, self.actor_target.trainable_variables) )
 
         # Soft updates:
         self.update_target_nets(tau=0.01)
