@@ -34,9 +34,15 @@ class Agent():
         self.critic_local = Network.network_critic()
         self.critic_target = Network.network_critic()
 
+
+
     # Let the agent learn from experience
     # Utilizing Deep Deterministic Policy Gradient methodology (DDPG):
     def learn(self):
+        # If buffer is sufficiently full, let the agent learn from his experience:
+        # Put the learning procedures into the main loop below!
+        if not self.replay_buffer.buffer_usage():
+            return
         """
         Q(s_t,a_t) = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
         """
@@ -69,7 +75,7 @@ class Agent():
         # Train the critic network
         next_action_batch = self.actor_local.predict(state_batch)
         next_state_action_batch = np.hstack( (next_state_batch, next_action_batch) )
-        Q_target_batch = reward_batch + self.gamma * self.critic_target.predict( next_state_action_batch )
+        td_target_batch = reward_batch + self.gamma * self.critic_target.predict( next_state_action_batch )
 
         #self.critic_local.fit(noise_action_batch, Q_target, batch_size=self.batch_size, epochs=1, shuffle=False, verbose=1)
 
@@ -87,7 +93,7 @@ class Agent():
         # action = 2 * np.random.random_sample(self.action_size) - 1.0
 
         # Add noise to action:
-        if np.random.random() > (1.-self.epsilon):
+        if random.random() > (1.-self.epsilon):
             action += self.noise.sample()
         
         action = np.clip(action, -1, +1)
@@ -113,20 +119,20 @@ class Agent():
     def load_weights(self, path):
         filepath = os.path.join(path, "actor_weights_latest.ckpt")
         print("Loading actor network weights from", filepath)
-        self.actor_local_net.load_weights(filepath)
-        self.actor_target_net.load_weights(filepath)
+        self.actor_local.load_weights(filepath)
+        self.actor_target.load_weights(filepath)
         filepath = os.path.join(path, "critic_weights_latest.ckpt")
         print("Loading critic network weights from", filepath)
-        self.critic_local_net.load_weights(filepath)
-        self.critic_target_net.load_weights(filepath)
+        self.critic_local.load_weights(filepath)
+        self.critic_target.load_weights(filepath)
 
     def save_weights(self, path):
         filepath = os.path.join(path, "actor_weights_latest.ckpt")
         print("Saving actor network weights to", filepath)
-        self.target_net.save_weights(filepath)
+        self.actor_target.save_weights(filepath)
         filepath = os.path.join(path, "critic_weights_latest.ckpt")
         print("Saving critic network weights to", filepath)
-        self.target_net.save_weights(filepath)
+        self.critic_target.save_weights(filepath)
 
 
 class ReplayBuffer():
