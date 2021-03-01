@@ -1,31 +1,28 @@
 [//]: # (Image References)
 
 
-
-
 # Project 2: Continuous Control
-
+This project illustrates the so-called Policy methods of reinforcement learning. The setting is a scenario where one (or 20 simultaneous) robot arms with 2 degrees of freedom (i.e. two joints) need to be trained to follow a ball-shaped orbit which orbits around their mounting point. Each arm is rewarded with ?? points as long as the abstract "hand" stays in the target region, whereas it is punished with ?? points while it is outside the region. Cf. img ?? for an illustration of this concept.
 
 
 ## Structure of Projects
 The main project is included in the files
 
-1. play.py
-2. train.py
-3. Continuous_Control.ipynb
-4. Network.py
-5. Agent.py
+1. agent.py
+2. play.py
+3. train.py
+4. Continuous_Control.ipynb
+5. network.py
    
 
 ## Learning Strategy
-There are several possibilities:
+Although we will settle with Distributed Distributional Deep Deterministic Policy Gradient (D4PG), we will outline different concept of policy gradient methods in the following section. There are several possibilities:
 
 1. Proximal Policy Optimization (PPO)
 2. Asynchronous Advantage Actor-Critic (A3C)
 3. Distributed Distributional Deep Deterministic Policy Gradient (D4PG)
-   
-In the submitted solution, we have chosen the following:
 
+In the submitted solution, we have chosen the following:
 
 $U_\theta = \mathbb{E\left[\sum_{t=0}^T r(s_t, a_t)\right]}$
 
@@ -42,6 +39,7 @@ Using the Reinforce-log-trick, we arrive at:
 $\nabla_\theta U_\theta = \mathbb{E}\left[\sum_{t=0}^T\left( \nabla_\theta\log(P_\theta(a_t\mid s_t)) \left(\sum_{t=0}^T r(s_t, a_t)\right)\right)\right]$
 
 ### Reinforce Trick
+The REINFORCE-"trick" is a simple transformation which is well-known from the field of statistical thermodynamics:
 
 $p(\tau; \theta, \phi) = \prod_{t=1}^T p(r_t, s_{t+1 \mid s_t, a_t;\phi})\pi(a_t\mid s_t;\theta)$
 
@@ -63,6 +61,7 @@ Assuming a single sample trajectory:
 $\nabla_\theta\mathbb{E}_{p(\tau\mid\theta,\phi)}\left[R(\tau)\right] \approx R(\tau) \sum_{t=1}^T \nabla_\theta \log p(a_t \mid s_t ; \theta)$
 
 -> Very high variance, so a baseline is needed.
+
 
 ## The Actor-Critic Algorithm
 
@@ -130,11 +129,8 @@ $w \leftarrow w + \alpha_w \delta_t \nabla_w\hat{Q}_\theta(s_t, a_t \sim b(s_t),
 
 
 
-
-
 ## Network Architecture
-The network definition is given in file `Network.py`:
-
+The network definition is given in file `network.py`:
 The output layer consists of four neurons with a `tanh`-activation layer.
 
 
