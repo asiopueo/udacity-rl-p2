@@ -42,8 +42,8 @@ def actor():
 def critic():
     state_input = layers.Input( shape=(state_size,) )
     action_input = layers.Input( shape=(action_size,) )
-    fc1 = layers.Dense(256, activation='relu' )(state_input)
-    fc2 = layers.Dense(128, activation='relu')( [fc1, action_input] )
+    fc1 = layers.Dense(fc1_units, activation='relu' )(state_input)
+    fc2 = layers.Dense(fc2_units, activation='relu')( [fc1, action_input] )
     output = layers.Dense(1, activation='tanh')( fc2 )
     
     model = keras.Model(inputs=[state_input, action_input] , outputs=value_output )
