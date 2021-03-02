@@ -9,8 +9,7 @@ env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
 brain_name = env.brain_names[0]
 brain = env.brains[brain_name]
 
-
-from Agent import Agent
+from agent import Agent
 from collections import namedtuple
 
 # Reset the environment
@@ -28,27 +27,32 @@ print('Size of each action:', action_size)
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
 
 # Initialize the agent:
-agent = Agent(buffer_size=10000, batch_size=20, gamma=0.98, epsilon=0.1, action_size=4)
+agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_size=4)
 
 
-# Initial values:
-state = env_info.vector_observations[0]     # get the current state
-score = 0       # Score is NOT the discounted reward but the final 'Banana Score' of the game
-time = 0
 
 
 ####################################
 #  Main learning loop:
 ####################################
 
+# Initial values:
+state = env_info.vector_observations[0] # Get the initial state
+score = 0           
+tick = 0
+
+eps = 1.0
+eps_rate = 0.995
+eps_end = 0.02
+
+
 #agent.load_weights("./checkpoints")
 
-
-while time < 200:
+while tick < 200:
     # Select action according to policy:
-    action = agent.action(state, add_noise=True)
+    action = agent.action(state, eps, add_noise=True)
 
-    print('Action taken: ', action, 'Time: ', time)
+    print('Action taken: ', action, 'Time: ', tick)
 
     # Take action and record the reward and the successive state
     env_info = env.step(action)[brain_name]
@@ -66,13 +70,16 @@ while time < 200:
     score += reward
     state = next_state
     
-    if time%10 == 0:
-        print("[Time: {}] Time to update the target net.".format(time))
-    elif time%50 == 0:
-        print("[Time: {}] Score {}".format(time, score))
+    eps *= eps_rate
+
+
+    if tick%10 == 0:
+        print("[Time: {}] Time to update the target net.".format(tick))
+    elif tick%50 == 0:
+        print("[Time: {}] Score {}".format(tick, score))
         print("Buffer usage: {}".format(agent.replay_buffer.buffer_usage()))
 
-    time += 1
+    tick += 1
 
 
 ####################################
