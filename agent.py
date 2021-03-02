@@ -71,12 +71,12 @@ class Agent():
         self.update_target_nets(tau=0.01)
         
     # Take action according to epsilon-greedy-policy:
-    def action(self, state, add_noise=True):
+    def action(self, state, eps, add_noise=True):
         # Sample action from actor network:
         action = self.actor_local.predict((state.reshape(1,-1)))
 
         # Add noise to action:
-        if random.random() < self.eps and add_noise:
+        if random.random() < eps and add_noise:
             action += self.noise.sample()
         
         action = np.clip(action, -1, 1)
