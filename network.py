@@ -23,12 +23,16 @@ from keras import layers
 # between -1 and 1 which represent the torque applied to the two joints of
 # the robot arm
 
+state_size = 33
+action_size = 4
+fc1_units = 256
+fc2_units = 128
 
 def actor():
-    state_input = layers.Input( shape=(33,) )
-    fc1 = layers.Dense(256, activation='relu')( state_input )
-    fc2 = layers.Dense(128, activation='relu')( fc1 )
-    action_output = layers.Dense(4, activation='tanh')( fc2 )
+    state_input = layers.Input( shape=(state_size,) )
+    fc1 = layers.Dense(fc1_units, activation='relu')( state_input )
+    fc2 = layers.Dense(fc2_units, activation='relu')( fc1 )
+    action_output = layers.Dense(action_size, activation='tanh')( fc2 )
     
     #model.compile(loss=losses.mean_squared_error, optimizer='sgd')
     model = Keras.Model(inputs=state_input , outputs=action_output)
@@ -36,8 +40,8 @@ def actor():
 
 
 def critic():
-    state_input = layers.Input( shape=(33,) )
-    action_input = layers.Input( shape=(4,) )
+    state_input = layers.Input( shape=(state_size,) )
+    action_input = layers.Input( shape=(action_size,) )
     fc1 = layers.Dense(256, activation='relu' )(state_input)
     fc2 = layers.Dense(128, activation='relu')( [fc1, action_input] )
     output = layers.Dense(1, activation='tanh')( fc2 )
