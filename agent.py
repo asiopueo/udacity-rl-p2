@@ -21,6 +21,7 @@ class Agent():
         self.replay_buffer = ReplayBuffer(buffer_size, batch_size)
 
         # Initialize noise
+        #self.noise = OUNoise()
         self.noise = Noise()
         self.epsilon = epsilon
 
@@ -69,25 +70,22 @@ class Agent():
         # Soft updates:
         self.update_target_nets(tau=0.01)
         
-
-
     # Take action according to epsilon-greedy-policy:
     def action(self, state, add_noise=True):
         # Sample action from actor network:
         action = self.actor_local.predict((state.reshape(1,-1)))
 
-        # Uncomment for random action, ígnoring the previous sampling:
-        # action = 2 * np.random.random_sample(self.action_size) - 1.0
-
         # Add noise to action:
-        if random.random() > (1.-self.epsilon):
+        if random.random() < self.eps and add_noise:
             action += self.noise.sample()
         
-        action = np.clip(action, -1, +1)
+        action = np.clip(action, -1, 1)
         return action
 
+    # Generates an array of action_size (i.e. 4) with uniformly distributed floats in [-1,1)
     def random_action(self):
-        return self.noise.sample()
+        action = 2 * np.random.random_sample(self.action_size) - 1.0
+        return action
 
     # Copy weights from short-term model to long-term model
     def update_target_nets(self, tau=0.01):
@@ -152,13 +150,31 @@ class ReplayBuffer():
         return len(self.replay_buffer) > self.batch_size
 
 
-
+# Normally distributed noise
 class Noise():
-    def __init__(self):
-        pass
+    def __init__(self, mu=0., sigma=0.2):
+        self.mu = mu
+        self.sigma = sigma
 
     def sample(self):
         #Todo: Sample from normal distribution
-        mu, sigma = 0.0, 1.0
         return np.random.normal(mu, sigma)
 
+
+# Ornstein-Uhlenbeck process
+class OUNoise():
+    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.2):
+        self.size = size
+        self.seed = random.seed(seed)
+        self.mu = mu
+        self.sigma = sigma
+        self.theta = theta
+        self.reset()
+
+    def reset(self):
+        self.state = copy.copy(self.mu)
+
+    def sample(self):
+        dx = self.theta * (self.mu - x) + self.sigma * np.random.standard_normal(self.size)
+        self.state += dx
+        return self.state

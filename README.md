@@ -2,7 +2,7 @@
 
 
 # Project 2: Continuous Control
-This project illustrates the so-called Policy methods of reinforcement learning. The setting is a scenario where one (or 20 simultaneous) robot arms with 2 degrees of freedom (i.e. two joints) need to be trained to follow a ball-shaped orbit which orbits around their mounting point. Each arm is rewarded with ?? points as long as the abstract "hand" stays in the target region, whereas it is punished with ?? points while it is outside the region. Cf. img ?? for an illustration of this concept.
+This project illustrates the so-called Policy methods of reinforcement learning. The setting is a scenario where one (or 20 simultaneous) robot arms with 2 degrees of freedom (i.e. two joints) need to be trained to follow a sphere (or baloon if one prefers something more concrete) which orbits around their shoulder mount. Each arm is rewarded with ?? points as long as the abstract "hand" stays in the target region, whereas it is punished with ?? points while it is outside the region. Cf. img ?? for an illustration of this concept.
 
 
 ## Structure of Projects
