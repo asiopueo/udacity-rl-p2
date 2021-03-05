@@ -27,8 +27,7 @@ print('Size of each action:', action_size)
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
 
 # Initialize the agent:
-agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_size=4)
-
+agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.01, action_size=4)
 
 
 
@@ -37,58 +36,61 @@ agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_
 ####################################
 
 # Initial values:
-state = env_info.vector_observations[0] # Get the initial state
+
+episode = 0
 score = 0           
 tick = 0
 
-eps = 1.0
-eps_rate = 0.995
-eps_end = 0.02
+score_list = []
+score_trailing_list = deque(maxlen=10)
 
 
 #agent.load_weights("./checkpoints")
 
-while tick < 200:
-    # Select action according to policy:
-    action = agent.action(state, eps, add_noise=True)
+for episode in range(0, 300):
+    ticks = 0
+    score = 0
 
-    print('Action taken: ', action, 'Time: ', tick)
+    env_info = env.reset(train_mode=False)[brain_name]  # Reset the environment
+    state = env_info.vector_observations[0]             # Get the current state
 
-    # Take action and record the reward and the successive state
-    env_info = env.step(action)[brain_name]
-    
-    reward = env_info.rewards[0]
-    next_state = env_info.vector_observations[0]
-    done = env_info.local_done[0] # Not really relevant in this experiment as it runs 300 turns anyway
+    start = time.time()
+    while True:
+        # Select action according to policy:
+        action = agent.action(state)
 
-    # Add experience to the agent's replay buffer:
-    exp = Experience(state, action, reward, next_state, done)
-    agent.replay_buffer.insert_into_buffer( exp )
-    
-    agent.learn()
+        # Take action and record the reward and the successive state
+        env_info = env.step(action)[brain_name]
+        
+        reward = env_info.rewards[0]
+        next_state = env_info.vector_observations[0]
+        done = env_info.local_done[0]
 
-    score += reward
-    state = next_state
-    
-    eps *= eps_rate
+        score += reward
+        state = next_state
+        
+        if done is True:
+            break
 
-
-    if tick%10 == 0:
-        print("[Time: {}] Time to update the target net.".format(tick))
-    elif tick%50 == 0:
-        print("[Time: {}] Score {}".format(tick, score))
-        print("Buffer usage: {}".format(agent.replay_buffer.buffer_usage()))
-
-    tick += 1
+        ticks += 1
 
 
-####################################
-#  Debriefing:
-####################################
+    end = time.time()
 
-print("")
-print("Total score:", score)
-agent.save_weights("./checkpoints")
+    score_list.append(score)
+    score_trailing_list.append(score)
 
+    score_avg = np.mean(score_list)
+    score_trailing_avg = np.mean(score_trailing_list)
 
+    print("***********************************************")
+    print("Score of episode {}: {}".format(episode, score))
+    print("Avg. score: {:.2f}".format(score_avg))
+    print("Trailing avg. score: {:.2f}".format(score_trailing_avg))
+    print("Time consumed: {:.2f} s".format(end-start))
+    print("***********************************************")
+
+    episode += 1
+
+env.close()
 
