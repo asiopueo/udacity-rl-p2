@@ -3,8 +3,14 @@ import random
 import numpy as np
 from collections import namedtuple
 
-import networks
-import keras
+import torch
+import torch.nn.functional as F
+import torch.optim as optim
+
+from networks_torch import Actor, Critic
+
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Agent():
@@ -27,12 +33,13 @@ class Agent():
 
         # Seed the random number generator
         random.seed()
-        # QNetwork - We choose the simple network
-        self.actor_local = Network.actor()
-        self.actor_target = Network.actor()
+        seed=0
 
-        self.critic_local = Network.critic()
-        self.critic_target = Network.critic()
+        self.actor_local = Actor(seed)
+        self.actor_target = Actor(seed)
+
+        self.critic_local = Critic(seed)
+        self.critic_target = Critic(seed)
 
 
     # Let the agent learn from experience
@@ -71,14 +78,14 @@ class Agent():
         self.update_target_nets(tau=0.01)
         
     # Take action according to epsilon-greedy-policy:
-    def action(self, state, eps, add_noise=True):
+    def action(self, state, eps=1., add_noise=True):
         # Sample action from actor network:
-        action = self.actor_local.predict((state.reshape(1,-1)))
+        action = self.actor_local.forward(state)
 
         # Add noise to action:
         if random.random() < eps and add_noise:
             action += self.noise.sample()
-        
+
         action = np.clip(action, -1, 1)
         return action
 
@@ -88,36 +95,33 @@ class Agent():
         return action
 
     # Copy weights from short-term model to long-term model
-    def update_target_nets(self, tau=0.01):
-        # Implement soft update for later:
-        # get_weights()[0] -- weights
-        # get weights()[1] -- bias (if existent)
-        # Soft-update:
-        actor_weights_local = np.array( self.actor_local.get_weights() )
-        actor_weights_target = np.array( self.actor_target.get_weights() )
-        self.actor_target.set_weights( tau*actor_weights_local + (1-tau)*actor_weights_target )
+    def soft_update_target_nets(self, tau=0.001):
+        for t, l in zip(self.actor_target.parameters(), self.actor_local.parameters() ):
+            t.data.copy_( (1-tau)*t.data + tau*l.data )
 
-        critic_weights_local = np.array( self.critic_local.get_weights() )
-        critic_weights_target = np.array( self.critic_target.get_weights() )
-        self.critic_target.set_weights( tau*critic_weights_local + (1-tau)*critic_weights_target )
+        for t, l in zip(self.critic_target.parameters(), self.critic_local.parameters() ):
+            t.data.copy_( (1-tau)*t.data + tau*l.data )
+
 
     def load_weights(self, path):
-        filepath = os.path.join(path, "actor_weights_latest.ckpt")
+        filepath = os.path.join(path, "actor_weights_latest.pth")
         print("Loading actor network weights from", filepath)
-        self.actor_local.load_weights(filepath)
-        self.actor_target.load_weights(filepath)
-        filepath = os.path.join(path, "critic_weights_latest.ckpt")
+        self.actor_local.load_state_dict(torch.load(filepath, map_location=lambda storage, loc: storage))
+
+        filepath = os.path.join(path, "critic_weights_latest.pth")
         print("Loading critic network weights from", filepath)
-        self.critic_local.load_weights(filepath)
-        self.critic_target.load_weights(filepath)
+        self.critic_local.load_state_dict(torch.load(filepath, map_location=lambda storage, loc: storage))
+        
+        self.hard_update_target_nets()
+
 
     def save_weights(self, path):
-        filepath = os.path.join(path, "actor_weights_latest.ckpt")
+        filepath = os.path.join(path, "actor_weights_latest.pth")
         print("Saving actor network weights to", filepath)
-        self.actor_target.save_weights(filepath)
-        filepath = os.path.join(path, "critic_weights_latest.ckpt")
+        torch.save(self.actor_net.state_dict(), filepath) 
+        filepath = os.path.join(path, "critic_weights_latest.pth")
         print("Saving critic network weights to", filepath)
-        self.critic_target.save_weights(filepath)
+        torch.save(self.critic_net.state_dict(), filepath) 
 
 
 class ReplayBuffer():

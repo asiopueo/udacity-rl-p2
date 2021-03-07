@@ -3,7 +3,7 @@ import random
 import numpy as np
 from collections import namedtuple
 
-import Network
+import networks
 import keras
 
 
