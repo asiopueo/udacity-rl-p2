@@ -1,18 +1,7 @@
-import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-import os
-os.environ['KMP_WARNINGS'] = 'FALSE'
-import tensorflow as tf
-#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
-tf.compat.v1.logging.set_verbosity(tf.logging.ERROR)
-
-from keras.models import Sequential
-from keras.layers import MaxPooling2D, Flatten, BatchNormalization
-from keras.layers import Dense, Dropout, Activation
-from keras.layers.convolutional import Convolution2D
-from keras.optimizers import Adam
-import tensorflow.keras.losses as losses
-from keras import layers
 
 # The network is used to approximate a POLICY. As a result, we suggest the following structure:
 # 
@@ -23,28 +12,47 @@ from keras import layers
 # between -1 and 1 which represent the torque applied to the two joints of
 # the robot arm
 
-state_size = 33
-action_size = 4
-fc1_units = 256
-fc2_units = 128
 
-def actor():
-    state_input = layers.Input( shape=(state_size,) )
-    fc1 = layers.Dense(fc1_units, activation='relu')( state_input )
-    fc2 = layers.Dense(fc2_units, activation='relu')( fc1 )
-    action_output = layers.Dense(action_size, activation='tanh')( fc2 )
-    
-    #model.compile(loss=losses.mean_squared_error, optimizer='sgd')
-    model = Keras.Model(inputs=state_input , outputs=action_output)
-    return model
+class Actor(nn.Module):
+    def __init__(self, seed, state_size=33, action_size=4, units_fc1 = 256, units_fc2 = 128):
+        super(Actor, self).__init__()
+        self.seed = torch.manual_seed(seed)
+
+        self.fc1 = nn.Linear(state_size, units_fc1)
+        self.fc2 = nn.Linear(units_fc1, units_fc2)
+        self.output = nn.Linear( units_fc2, action_size)
+        
+    def reset_parameters(self):
+        self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
+        self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
+        self.fc3.weight.data.uniform_(-3e-3, 3e-3)
+
+    def forward(self, state):
+        x = F.relu( self.fc1(state) )
+        x = F.relu( self.fc2( x ))
+        state = F.tanh( self.output(x) )
+        return state
 
 
-def critic():
-    state_input = layers.Input( shape=(state_size,) )
-    action_input = layers.Input( shape=(action_size,) )
-    fc1 = layers.Dense(fc1_units, activation='relu' )(state_input)
-    fc2 = layers.Dense(fc2_units, activation='relu')( [fc1, action_input] )
-    output = layers.Dense(1, activation='tanh')( fc2 )
-    
-    model = keras.Model(inputs=[state_input, action_input] , outputs=value_output )
-    return model
+
+class Critic(nn.Module):
+    def __init__(self, seed, state_size=33, action_size=4, units_fc1 = 256, units_fc2 = 128):
+        super(Critic, self).__init__()
+        self.seed = torch.manual_seed(seed)
+
+        self.fc1 = nn.Linear(state_size, units_fc1)
+        self.fc2 = nn.Linear(units_fc1+action_size, units_fc2)
+        self.fc3 = nn.Linear(units_fc2, 1)
+
+    def reset_paramters(self):
+        self.fcs1.weight.data.uniform_(*hidden_init(self.fcs1))
+        self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
+        self.fc3.weight.data.uniform_(-3e-3, 3e-3)
+
+    def forward(self, state, action):
+        x = F.elu( self.fc1(state) )
+        x = torch.cat( (x, action), dim=1 )
+        x = F.elu( self.fc2(x) )
+        value = self.fc3(x)
+        return value
+
