@@ -9,3 +9,7 @@ checkpoints/
 
 Reacher_Linux_1/
 Reacher_Linux_20/
+
+communicator_objects/
+unityagents/
+unitytrainers/
