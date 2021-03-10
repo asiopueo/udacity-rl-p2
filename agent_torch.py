@@ -55,39 +55,45 @@ class Agent():
         
         # Train the critic network
         # Q(s_t,a_t) = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
-        with tf.GradientTape as tape:
-            actions_target = self.critic_target(next_state_batch, training=True)
-            y = reward_batch + self.gamma * self.critic_target( [next_state_batch, actions_target], training=True )
-            critic_value = self.critic_local([state_batch, action_batch], training=True)
-            
-            critic_loss = tf.math.reduce_mean(tf.math.square(y - critic_value))
-            critic_grad = tape.gradient(critic_loss, critic_target.trainable_variables)
-            critic_optimizer.apply_gradients( zip(critic_grad, self.critic_target.trainable_variables) )
+        # ---------------------------- update critic ---------------------------- #
+        # Get predicted next-state actions and Q values from target models
+        actions_next = self.actor_target(next_states)
+        Q_targets_next = self.critic_target(next_states, actions_next)
+        # Compute Q targets for current states (y_i)
+        Q_targets = rewards + (self.gamma * Q_targets_next * (1 - dones))
+        # Compute critic loss
+        Q_expected = self.critic_local(states, actions)
+        critic_loss = F.mse_loss(Q_expected, Q_targets)
+        # Minimize the loss
+        self.critic_optimizer.zero_grad()
+        critic_loss.backward()
+        torch.nn.utils.clip_grad_norm(self.critic_local.parameters(), 1.0) #clip the gradient for the critic network (Udacity hint)
+        self.critic_optimizer.step()
 
-        # Train the actor network
-        with tf.GradientTape as grad:
-            next_action_batch = self.actor_local(state_batch)
-            next_state_action_batch = np.hstack( (next_state_batch, next_action_batch) )
-            actor_pred = reward_batch + self.gamma * self.critic_target.predict( next_state_action_batch )
-            
-            actor_loss = tf.math.reduce_mean(state_batch)
-            actor_grad = tape.gradient()
-            actor_optimizer.apply_gradients( zip(actor_grad, self.actor_target.trainable_variables) )
+        # ---------------------------- update actor ---------------------------- #
+        # Compute actor loss
+        actions_pred = self.actor_local(states)
+        actor_loss = -self.critic_local(states, actions_pred).mean()
+        # Minimize the loss
+        self.actor_optimizer.zero_grad()
+        actor_loss.backward()
+        self.actor_optimizer.step()
 
         # Soft updates:
-        self.update_target_nets(tau=0.01)
+        self.soft_update_target_nets(tau=0.001)
         
+
     # Take action according to epsilon-greedy-policy:
     def action(self, state, eps=1., add_noise=True):
         # Sample action from actor network:
-        action = self.actor_local.forward(state)
-
-        # Add noise to action:
-        if random.random() < eps and add_noise:
-            action += self.noise.sample()
-
-        action = np.clip(action, -1, 1)
-        return action
+        statess = torch.from_numpy(state).float().to(device)
+        self.actor_local.eval()
+        with torch.no_grad():
+            actions = self.actor_local(state).cpu().data.numpy()
+        self.actor_local.train()
+        
+        actions = np.clip(actions, -1, 1)
+        return actions
 
     # Generates an array of action_size (i.e. 4) with uniformly distributed floats in [-1,1)
     def random_action(self):
