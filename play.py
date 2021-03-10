@@ -9,8 +9,9 @@ env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
 brain_name = env.brain_names[0]
 brain = env.brains[brain_name]
 
-from agent import Agent
-from collections import namedtuple
+#from agent import Agent
+from collections import namedtuple, deque
+import time
 
 # Reset the environment
 env_info = env.reset(train_mode=False)[brain_name]
@@ -27,6 +28,7 @@ print('Size of each action:', action_size)
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
 
 # Initialize the agent:
+from agent_torch import Agent
 agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.01, action_size=4)
 
 
@@ -42,7 +44,7 @@ score = 0
 tick = 0
 
 score_list = []
-score_trailing_list = deque(maxlen=10)
+score_trailing_list = deque(maxlen=100)
 
 
 #agent.load_weights("./checkpoints")
@@ -57,7 +59,8 @@ for episode in range(0, 300):
     start = time.time()
     while True:
         # Select action according to policy:
-        action = agent.action(state)
+        action = agent.action(state, eps)
+        action = agent.random_action()
 
         # Take action and record the reward and the successive state
         env_info = env.step(action)[brain_name]

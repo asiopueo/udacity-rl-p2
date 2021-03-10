@@ -2,6 +2,8 @@ from unityagents import UnityEnvironment
 import numpy as np
 import time
 
+
+
 #################################
 #  Initialization:
 #################################
@@ -10,8 +12,8 @@ env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
 brain_name = env.brain_names[0]
 brain = env.brains[brain_name]
 
-from agent import Agent
-from collections import namedtuple
+#from agent import Agent
+from collections import namedtuple, deque
 
 # Reset the environment
 env_info = env.reset(train_mode=False)[brain_name]
@@ -28,7 +30,9 @@ print('Size of each action:', action_size)
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
 
 # Initialize the agent:
+from agent_torch import Agent
 agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_size=4)
+
 
 
 
