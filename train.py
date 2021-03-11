@@ -7,7 +7,8 @@ import time
 #################################
 #  Initialization:
 #################################
-env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
+#env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
+env = UnityEnvironment(file_name="./Reacher_Linux_20/Reacher.x86_64")
 # get the default brain
 brain_name = env.brain_names[0]
 brain = env.brains[brain_name]
@@ -15,7 +16,6 @@ brain = env.brains[brain_name]
 #from agent import Agent
 from collections import namedtuple, deque
 
-# Reset the environment
 env_info = env.reset(train_mode=False)[brain_name]
 
 # number of agents
@@ -47,6 +47,7 @@ def training(n_episodes=500):
 
     score_list = []
     score_trailing_list = deque(maxlen=10)
+    score_trailing_avg_list = []
 
     eps = 1.0
     eps_rate = 0.995
@@ -55,19 +56,17 @@ def training(n_episodes=500):
 
     #agent.load_weights("./checkpoints")
 
-    for episode in range(0, 300):
+    for episode in range(0, n_episodes):
         ticks = 0
         score = 0
 
-        env_info = env.reset(train_mode=True)[brain_name]  # Reset the environment
-        state = env_info.vector_observations[0]             # Get the current state
+        env_info = env.reset(train_mode=False)[brain_name]   # Reset the environment
+        state = env_info.vector_observations                # Get the current state
 
         start = time.time()
         while True:
             # Select action according to policy:
             action = agent.action(state, eps, add_noise=True)
-
-            print('Action taken: ', action, 'Time: ', tick)
 
             # Take action and record the reward and the successive state
             env_info = env.step(action)[brain_name]
@@ -97,29 +96,25 @@ def training(n_episodes=500):
 
         score_list.append(score)
         score_trailing_list.append(score)
-
-        score_avg = np.mean(score_list)
         score_trailing_avg = np.mean(score_trailing_list)
+        score_trailing_avg_list.append(score_trailing_avg)
 
         print("***********************************************")
         print("Score of episode {}: {}".format(episode, score))
-        print("Avg. score: {:.2f}".format(score_avg))
         print("Trailing avg. score: {:.2f}".format(score_trailing_avg))
         print("Greedy epsilon used: {}".format(eps))
         print("Time consumed: {:.2f} s".format(end-start))
         print("***********************************************")
 
-
-        print("Total score:", score)
-        agent.save_weights("./checkpoints")
+        #agent.save_weights("./checkpoints")
 
         episode += 1
 
-    return score_list, score_trailing_list
+    return score_list, score_trailing_avg_list
 
 
 
-training()
+training(50)
 
 
 

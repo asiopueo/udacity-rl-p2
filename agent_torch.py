@@ -14,7 +14,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Agent():
-    def __init__(self, buffer_size, batch_size, action_size, gamma, epsilon=0.9):
+    def __init__(self, buffer_size, batch_size, action_size, gamma, epsilon=0.9, learn_rate=0.0005):
         if not batch_size < buffer_size:
             raise Exception()
 
@@ -30,16 +30,24 @@ class Agent():
         #self.noise = OUNoise()
         self.noise = Noise()
         self.epsilon = epsilon
+        self.learn_rate = learn_rate
 
         # Seed the random number generator
         random.seed()
-        seed=0
+        np.random.seed()
 
-        self.actor_local = Actor(seed)
-        self.actor_target = Actor(seed)
+        seed = 0
 
-        self.critic_local = Critic(seed)
-        self.critic_target = Critic(seed)
+        self.actor_local = Actor(seed).to(device)
+        self.actor_target = Actor(seed).to(device)
+
+        self.critic_local = Critic(seed).to(device)
+        self.critic_target = Critic(seed).to(device)
+
+        self.hard_update_target_nets()
+
+        self.actor_optimizer = optim.Adam( self.actor_local.parameters(), lr=self.learn_rate )
+        self.critic_optimizer = optim.Adam( self.critic_local.parameters(), lr=self.learn_rate )
 
 
     # Let the agent learn from experience
@@ -51,7 +59,7 @@ class Agent():
             return
         
         # Retrieve batch of experiences from the replay buffer:
-        state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.replay_buffer.sample_from_buffer()
+        states, actions, rewards, next_states, dones = self.replay_buffer.sample_from_buffer()
         
         # Train the critic network
         # Q(s_t,a_t) = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
@@ -86,7 +94,7 @@ class Agent():
     # Take action according to epsilon-greedy-policy:
     def action(self, state, eps=1., add_noise=True):
         # Sample action from actor network:
-        statess = torch.from_numpy(state).float().to(device)
+        state = torch.from_numpy(state).float().to(device)
         self.actor_local.eval()
         with torch.no_grad():
             actions = self.actor_local(state).cpu().data.numpy()
@@ -107,6 +115,9 @@ class Agent():
 
         for t, l in zip(self.critic_target.parameters(), self.critic_local.parameters() ):
             t.data.copy_( (1-tau)*t.data + tau*l.data )
+
+    def hard_update_target_nets(self):
+        self.soft_update_target_nets( tau=1.0 )
 
 
     def load_weights(self, path):
@@ -147,11 +158,11 @@ class ReplayBuffer():
 
         # Reorder experience batch such that we have a batch of states, a batch of actions, a batch of rewards, etc.
         # Eventually add 'if exp is not None'
-        state = np.vstack( [exp.state for exp in batch] )
-        action = np.vstack( [exp.action for exp in batch] )
-        reward = np.vstack( [exp.reward for exp in batch] )
-        state_next = np.vstack( [exp.next_state for exp in batch] )
-        done = np.vstack( [exp.done for exp in batch] )
+        state = torch.from_numpy( np.vstack( [exp.state for exp in batch] ) ).float().to(device)
+        action = torch.from_numpy( np.vstack( [exp.action for exp in batch] ) ).float().to(device)
+        reward = torch.from_numpy( np.vstack( [exp.reward for exp in batch] ) ).float().to(device)
+        state_next = torch.from_numpy( np.vstack( [exp.next_state for exp in batch] ) ).float().to(device)
+        done = torch.from_numpy( np.vstack( [exp.done for exp in batch] ).astype(np.uint8) ).float().to(device)
 
         return state, action, reward, state_next, done
 

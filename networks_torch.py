@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -11,7 +12,10 @@ import torch.nn.functional as F
 # The output layer consists of two neurons for four floating point numbers
 # between -1 and 1 which represent the torque applied to the two joints of
 # the robot arm
-
+def hidden_init(layer):
+    fan_in = layer.weight.data.size()[0]
+    lim = 1. / np.sqrt(fan_in)
+    return (-lim, lim)
 
 class Actor(nn.Module):
     def __init__(self, seed, state_size=33, action_size=4, units_fc1 = 256, units_fc2 = 128):
@@ -20,7 +24,8 @@ class Actor(nn.Module):
 
         self.fc1 = nn.Linear(state_size, units_fc1)
         self.fc2 = nn.Linear(units_fc1, units_fc2)
-        self.output = nn.Linear( units_fc2, action_size)
+        self.fc3 = nn.Linear( units_fc2, action_size)
+        self.reset_parameters()
         
     def reset_parameters(self):
         self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
@@ -30,8 +35,8 @@ class Actor(nn.Module):
     def forward(self, state):
         x = F.relu( self.fc1(state) )
         x = F.relu( self.fc2( x ))
-        state = F.tanh( self.output(x) )
-        return state
+        action = F.tanh( self.fc3(x) )
+        return action
 
 
 
@@ -43,9 +48,10 @@ class Critic(nn.Module):
         self.fc1 = nn.Linear(state_size, units_fc1)
         self.fc2 = nn.Linear(units_fc1+action_size, units_fc2)
         self.fc3 = nn.Linear(units_fc2, 1)
+        self.reset_parameters()
 
-    def reset_paramters(self):
-        self.fcs1.weight.data.uniform_(*hidden_init(self.fcs1))
+    def reset_parameters(self):
+        self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
         self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
