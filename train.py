@@ -1,5 +1,6 @@
 from unityagents import UnityEnvironment
 import numpy as np
+from collections import namedtuple, deque
 import time
 
 
@@ -7,27 +8,29 @@ import time
 #################################
 #  Initialization:
 #################################
-#env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
-env = UnityEnvironment(file_name="./Reacher_Linux_20/Reacher.x86_64")
-# get the default brain
+
+# Select environment either with one or 20 reacher arms
+env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
+#env = UnityEnvironment(file_name="./Reacher_Linux_20/Reacher.x86_64")
+
+# Get the default brain
 brain_name = env.brain_names[0]
 brain = env.brains[brain_name]
 
-#from agent import Agent
-from collections import namedtuple, deque
-
 env_info = env.reset(train_mode=False)[brain_name]
 
-# number of agents
+# Number of agents (should be 1 or 20)
 num_agents = len(env_info.agents)
 print('Number of agents:', num_agents)
 
-# size of each action
+# Size of each action (should be 4)
 action_size = brain.vector_action_space_size
 print('Size of each action:', action_size)
 
 # Define named tuple 'Experience'; you can use a dictionary alternatively
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
+
+
 
 # Initialize the agent:
 from agent_torch import Agent
@@ -39,7 +42,6 @@ agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_
 ####################################
 #  Main learning loop:
 ####################################
-
 
 def training(n_episodes=500):
     score = 0           
@@ -53,14 +55,13 @@ def training(n_episodes=500):
     eps_rate = 0.995
     eps_end = 0.02
 
-
     #agent.load_weights("./checkpoints")
 
     for episode in range(0, n_episodes):
         ticks = 0
         score = 0
 
-        env_info = env.reset(train_mode=False)[brain_name]   # Reset the environment
+        env_info = env.reset(train_mode=True)[brain_name]   # Reset the environment
         state = env_info.vector_observations                # Get the current state
 
         start = time.time()
@@ -107,7 +108,6 @@ def training(n_episodes=500):
         print("***********************************************")
 
         #agent.save_weights("./checkpoints")
-
         episode += 1
 
     return score_list, score_trailing_avg_list
