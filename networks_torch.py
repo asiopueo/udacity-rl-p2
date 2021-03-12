@@ -35,7 +35,7 @@ class Actor(nn.Module):
     def forward(self, state):
         x = F.relu( self.fc1(state) )
         x = F.relu( self.fc2( x ))
-        action = F.tanh( self.fc3(x) )
+        action = torch.tanh( self.fc3(x) )
         return action
 
 
