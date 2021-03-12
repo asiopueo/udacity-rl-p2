@@ -64,7 +64,6 @@ class Agent():
         
         # Retrieve batch of experiences from the replay buffer:
         states, actions, rewards, next_states, dones = self.replay_buffer.sample_from_buffer()
-        
         # Train the critic network
         # Q(s_t,a_t) = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
         # ---------------------------- update critic ---------------------------- #

@@ -10,8 +10,8 @@ import time
 #################################
 
 # Select environment either with one or 20 reacher arms
-env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
-#env = UnityEnvironment(file_name="./Reacher_Linux_20/Reacher.x86_64")
+#env = UnityEnvironment(file_name="./Reacher_Linux_1/Reacher.x86_64")
+env = UnityEnvironment(file_name="./Reacher_Linux_20/Reacher.x86_64")
 
 # Get the default brain
 brain_name = env.brain_names[0]
@@ -44,7 +44,7 @@ agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_
 ####################################
 
 def training(n_episodes=500):
-    score = 0           
+    scores = 0           
     tick = 0
     #eps = 1. # eps is only defined as info
 
@@ -56,33 +56,34 @@ def training(n_episodes=500):
 
     for episode in range(0, n_episodes):
         ticks = 0
-        score = 0
+        scores = [0] * num_agents
 
-        env_info = env.reset(train_mode=True)[brain_name]   # Reset the environment
-        state = env_info.vector_observations                # Get the current state
+        env_info = env.reset(train_mode=False)[brain_name]   # Reset the environment
+        states = env_info.vector_observations                # Get the current state
 
         start = time.time()
         while True:
             # Select action according to policy:
-            action = agent.action(state, add_noise=True)
+            actions, _ = agent.action(states, add_noise=True)
 
             # Take action and record the reward and the successive state
-            env_info = env.step(action)[brain_name]
+            env_info = env.step(actions)[brain_name]
             
-            reward = env_info.rewards[0]
-            next_state = env_info.vector_observations[0]
-            done = env_info.local_done[0]
+            rewards = env_info.rewards
+            next_states = env_info.vector_observations
+            dones = env_info.local_done
 
             # Add experience to the agent's replay buffer:
-            exp = Experience(state, action, reward, next_state, done)
-            agent.replay_buffer.insert_into_buffer( exp )
+            for idx in range(num_agents):
+                exp = Experience(states[idx], actions[idx], rewards[idx], next_states[idx], dones[idx])
+                agent.replay_buffer.insert_into_buffer( exp )
             
             agent.learn()
 
-            score += reward
-            state = next_state
+            scores += rewards
+            states = next_states
             
-            if done is True:
+            if np.any(dones):
                 break
 
             ticks += 1
@@ -90,6 +91,7 @@ def training(n_episodes=500):
 
         end = time.time()
 
+        score = np.mean(scores)
         score_list.append(score)
         score_trailing_list.append(score)
         score_trailing_avg = np.mean(score_trailing_list)
