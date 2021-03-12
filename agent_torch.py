@@ -25,6 +25,7 @@ class Agent():
         self.batch_size = batch_size
         self.action_size = action_size
         self.gamma = gamma
+        self.eps = epsilon
 
         # Initialize replay buffer
         self.replay_buffer = ReplayBuffer(buffer_size, batch_size)
@@ -78,7 +79,7 @@ class Agent():
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
-        torch.nn.utils.clip_grad_norm(self.critic_local.parameters(), 1.0) #clip the gradient for the critic network (Udacity hint)
+        torch.nn.utils.clip_grad_norm_(self.critic_local.parameters(), 1.0) #clip the gradient for the critic network (Udacity hint)
         self.critic_optimizer.step()
 
         # ---------------------------- update actor ---------------------------- #
@@ -186,15 +187,15 @@ class Noise():
 
     def sample(self):
         #Todo: Sample from normal distribution
-        return np.random.normal(mu, sigma)
+        return np.random.randn() # Shall be refined later!
 
 
-# Ornstein-Uhlenbeck process
+# Ornstein-Uhlenbeck process:
 class OUNoise():
     def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.2):
         self.size = size
         self.seed = random.seed(seed)
-        self.mu = mu * np.ones(size)
+        self.mu = mu + np.ones(size)
         self.sigma = sigma
         self.theta = theta
         self.reset()
