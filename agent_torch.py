@@ -13,12 +13,11 @@ from networks_torch import Actor, Critic
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Experimental values:
-EPS_START=1.0
-EPS_END=0.05
-EPS_DECAY=3e-5
+EPS_END = 0.05
+EPS_DECAY = 3e-5
 
 class Agent():
-    def __init__(self, buffer_size, batch_size, action_size, gamma, epsilon=0.9, learn_rate=0.0005):
+    def __init__(self, buffer_size, batch_size, action_size, gamma, epsilon=1.0, learn_rate=0.0005):
         if not batch_size < buffer_size:
             raise Exception()
 
@@ -106,14 +105,10 @@ class Agent():
         
         if add_noise and random.random() < eps:
             actions += self.noise.sample()
-
-            self.eps -= EPS_DECAY
-            if self.eps < EPS_END
-                self.eps = EPS_END
-
+            self.eps = max(self.eps-EPS_DECAY, EPS_END)
 
         actions = np.clip(actions, -1, 1)
-        return actions
+        return actions, self.eps # Returns used epsilon as info
 
     # Generates an array of action_size (i.e. 4) with uniformly distributed floats in [-1,1)
     def random_action(self):

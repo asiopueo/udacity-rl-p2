@@ -46,14 +46,11 @@ agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_
 def training(n_episodes=500):
     score = 0           
     tick = 0
+    #eps = 1. # eps is only defined as info
 
     score_list = []
     score_trailing_list = deque(maxlen=10)
     score_trailing_avg_list = []
-
-    eps = 1.0
-    eps_rate = 0.995
-    eps_end = 0.02
 
     #agent.load_weights("./checkpoints")
 
@@ -67,7 +64,7 @@ def training(n_episodes=500):
         start = time.time()
         while True:
             # Select action according to policy:
-            action = agent.action(state, eps, add_noise=True)
+            action = agent.action(state, add_noise=True)
 
             # Take action and record the reward and the successive state
             env_info = env.step(action)[brain_name]
@@ -85,8 +82,6 @@ def training(n_episodes=500):
             score += reward
             state = next_state
             
-            eps = max( eps_rate*eps, eps_end )
-
             if done is True:
                 break
 
@@ -103,7 +98,7 @@ def training(n_episodes=500):
         print("***********************************************")
         print("Score of episode {}: {}".format(episode, score))
         print("Trailing avg. score: {:.2f}".format(score_trailing_avg))
-        print("Greedy epsilon used: {}".format(eps))
+        #print("Epsilon used: {}".format(eps))
         print("Time consumed: {:.2f} s".format(end-start))
         print("***********************************************")
 
