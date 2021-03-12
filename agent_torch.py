@@ -12,6 +12,10 @@ from networks_torch import Actor, Critic
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# Experimental values:
+EPS_START=1.0
+EPS_END=0.05
+EPS_DECAY=3e-5
 
 class Agent():
     def __init__(self, buffer_size, batch_size, action_size, gamma, epsilon=0.9, learn_rate=0.0005):
@@ -20,8 +24,8 @@ class Agent():
 
         self.buffer_size = buffer_size
         self.batch_size = batch_size
-        self.gamma = gamma
         self.action_size = action_size
+        self.gamma = gamma
 
         # Initialize replay buffer
         self.replay_buffer = ReplayBuffer(buffer_size, batch_size)
@@ -100,6 +104,14 @@ class Agent():
             actions = self.actor_local(state).cpu().data.numpy()
         self.actor_local.train()
         
+        if add_noise and random.random() < eps:
+            actions += self.noise.sample()
+
+            self.eps -= EPS_DECAY
+            if self.eps < EPS_END
+                self.eps = EPS_END
+
+
         actions = np.clip(actions, -1, 1)
         return actions
 
@@ -187,7 +199,7 @@ class OUNoise():
     def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.2):
         self.size = size
         self.seed = random.seed(seed)
-        self.mu = mu
+        self.mu = mu * np.ones(size)
         self.sigma = sigma
         self.theta = theta
         self.reset()
@@ -196,6 +208,7 @@ class OUNoise():
         self.state = copy.copy(self.mu)
 
     def sample(self):
+        x = self.state
         dx = self.theta * (self.mu - x) + self.sigma * np.random.standard_normal(self.size)
         self.state += dx
         return self.state
