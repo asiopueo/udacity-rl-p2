@@ -39,7 +39,6 @@ agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.01, action
 
 # Initial values:
 
-episode = 0
 score = 0           
 tick = 0
 
