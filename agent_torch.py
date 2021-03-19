@@ -1,7 +1,8 @@
 from collections import deque
 import random
-import numpy as np
+import copy
 from collections import namedtuple
+import numpy as np
 
 import torch
 import torch.nn.functional as F

@@ -48,6 +48,8 @@ def training(n_episodes=500):
     tick = 0
     #eps = 1. # eps is only defined as info
 
+    success = False
+
     score_list = []
     score_trailing_list = deque(maxlen=10)
     score_trailing_avg_list = []
@@ -58,7 +60,7 @@ def training(n_episodes=500):
         ticks = 0
         scores = [0] * num_agents
 
-        env_info = env.reset(train_mode=False)[brain_name]   # Reset the environment
+        env_info = env.reset(train_mode=True)[brain_name]   # Reset the environment
         states = env_info.vector_observations                # Get the current state
 
         start = time.time()
@@ -100,11 +102,18 @@ def training(n_episodes=500):
         print("***********************************************")
         print("Score of episode {}: {}".format(episode, score))
         print("Trailing avg. score: {:.2f}".format(score_trailing_avg))
-        #print("Epsilon used: {}".format(eps))
         print("Time consumed: {:.2f} s".format(end-start))
         print("***********************************************")
+        
+        if score_trailing_avg > 30.0 and success == False:
+            print("===============================================")
+            print("Challenge solved at episode {}".format(episode))
+            print("===============================================")
+            success = True
 
-        #agent.save_weights("./checkpoints")
+        if episode % 100 == 0:
+            agent.save_weights("./checkpoints_torch")
+
         episode += 1
 
     return score_list, score_trailing_avg_list
