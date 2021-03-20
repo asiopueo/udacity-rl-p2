@@ -44,7 +44,6 @@ agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_
 ####################################
 
 def training(n_episodes=500):
-    scores = np.zeros( shape=(20,) )           
     tick = 0
     #eps = 1. # eps is only defined as info
 
@@ -58,7 +57,7 @@ def training(n_episodes=500):
 
     for episode in range(0, n_episodes):
         ticks = 0
-        scores = [0] * num_agents
+        scores = np.zeros( shape=(num_agents,) )
 
         env_info = env.reset(train_mode=True)[brain_name]   # Reset the environment
         states = env_info.vector_observations                # Get the current state
