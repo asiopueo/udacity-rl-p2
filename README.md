@@ -82,8 +82,8 @@ To set up your python environment to run the code in this repository, follow the
 	
 2. Clone the repository, and navigate to the root (`/`) folder.  Then, install several dependencies.
     ```bash
-    git clone https://github.com/udacity/deep-reinforcement-learning.git
-    cd udacity_rl_p1/
+    git clone https://github.com/asiopueo/udacity-rl-p2.git
+    cd udacity_rl_p2/
     conda install --yes --file requirements.txt
     ```
 
