@@ -43,7 +43,7 @@ agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_
 #  Main learning loop:
 ####################################
 
-def training(n_episodes=500):
+def training(n_episodes=200):
     tick = 0
     #eps = 1. # eps is only defined as info
 
