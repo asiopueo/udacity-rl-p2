@@ -144,10 +144,10 @@ class Agent():
     def save_weights(self, path):
         filepath = os.path.join(path, "actor_weights_latest.pth")
         print("Saving actor network weights to", filepath)
-        torch.save(self.actor_net.state_dict(), filepath) 
+        torch.save(self.actor_local.state_dict(), filepath) 
         filepath = os.path.join(path, "critic_weights_latest.pth")
         print("Saving critic network weights to", filepath)
-        torch.save(self.critic_net.state_dict(), filepath) 
+        torch.save(self.critic_local.state_dict(), filepath) 
 
 
 class ReplayBuffer():
