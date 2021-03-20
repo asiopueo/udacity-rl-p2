@@ -44,17 +44,17 @@ agent = Agent(buffer_size=10000, batch_size=64, gamma=0.98, epsilon=0.1, action_
 ####################################
 
 def training(n_episodes=500):
-    scores = 0           
+    scores = np.zeros( shape=(20,) )           
     tick = 0
     #eps = 1. # eps is only defined as info
 
-    success = False
+    success = False # Flag which will be triggered when challenge is solved
 
     score_list = []
     score_trailing_list = deque(maxlen=10)
     score_trailing_avg_list = []
 
-    #agent.load_weights("./checkpoints")
+    #agent.load_weights("./checkpoints_torch")
 
     for episode in range(0, n_episodes):
         ticks = 0
@@ -71,7 +71,7 @@ def training(n_episodes=500):
             # Take action and record the reward and the successive state
             env_info = env.step(actions)[brain_name]
             
-            rewards = env_info.rewards
+            rewards = np.array(env_info.rewards)
             next_states = env_info.vector_observations
             dones = env_info.local_done
 
@@ -105,16 +105,16 @@ def training(n_episodes=500):
         print("Time consumed: {:.2f} s".format(end-start))
         print("***********************************************")
         
-        if score_trailing_avg > 30.0 and success == False:
+        if score_trailing_avg > 30.0 and success is False:
             print("===============================================")
             print("Challenge solved at episode {}".format(episode))
             print("===============================================")
             success = True
 
-        if episode % 100 == 0:
-            agent.save_weights("./checkpoints_torch")
-
         episode += 1
+
+        if episode % 10 == 0:
+            agent.save_weights("./checkpoints_torch")
 
     return score_list, score_trailing_avg_list
 
