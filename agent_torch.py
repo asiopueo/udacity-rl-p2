@@ -42,7 +42,7 @@ class Agent():
         random.seed()
         np.random.seed()
 
-        seed = 0
+        seed = 5
 
         self.actor_local = Actor(seed).to(device)
         self.actor_target = Actor(seed).to(device)
@@ -60,34 +60,26 @@ class Agent():
     # Utilizing Deep Deterministic Policy Gradient methodology (DDPG):
     def learn(self):
         # If buffer is sufficiently full, let the agent learn from his experience:
-        # Put the learning procedures into the main loop below!
         if not self.replay_buffer.buffer_usage():
             return
         
         # Retrieve batch of experiences from the replay buffer:
         states, actions, rewards, next_states, dones = self.replay_buffer.sample_from_buffer()
-        # Train the critic network
-        # Q(s_t,a_t) = reward(s_t,a_t) + gamma * critic(s_{t+1},a_{t+1})
-        # ---------------------------- update critic ---------------------------- #
-        # Get predicted next-state actions and Q values from target models
+        # Critic network:
         actions_next = self.actor_target(next_states)
         Q_targets_next = self.critic_target(next_states, actions_next)
-        # Compute Q targets for current states (y_i)
         Q_targets = rewards + (self.gamma * Q_targets_next * (1 - dones))
-        # Compute critic loss
+        # Critic loss:
         Q_expected = self.critic_local(states, actions)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
-        # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         torch.nn.utils.clip_grad_norm_(self.critic_local.parameters(), 1.0) #clip the gradient for the critic network (Udacity hint)
         self.critic_optimizer.step()
 
-        # ---------------------------- update actor ---------------------------- #
-        # Compute actor loss
+        # Actor loss:
         actions_pred = self.actor_local(states)
         actor_loss = -self.critic_local(states, actions_pred).mean()
-        # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
