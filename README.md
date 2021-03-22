@@ -95,7 +95,12 @@ To set up your python environment to run the code in this repository, follow the
 
 2. Place the file in the DRLND GitHub repository, in the `udacity-rl-p2/` folder, and unzip (or decompress) the file. 
 
-3. Execute the following cells below 'My Implementation':
+3. Launch a Jupyter-notebook [click here if not installed](https://jupyter.org/install) for `Continuous_Control.ipynb`:
+   ```bash
+   jupyter-notebook Tennis.ipynb
+   ```
+
+3. Make sure that the `drlnd` environment is selected as kernel and execute the following cells below 'My Implementation':
    1. 'Initialization'
    2. 'Definition of Actor and Critic'
    3. 'Definition of Agent and Replay Buffer'
